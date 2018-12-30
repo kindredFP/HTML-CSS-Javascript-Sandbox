@@ -1,6 +1,5 @@
 
 function firstFunction (name){
-	console.log('The value that is passed in the first function = ' + name);
 	return name;
 }
 
