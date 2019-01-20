@@ -1,37 +1,70 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<script type="text/javascript" src="main.js"></script>
-	</head>
+<head>
+	<script type="text/javascript" src="main.js"></script>
+	<style>
+	body, html {
+		height: 100%;
+		margin: 0;
+	}
+	a { color: #2F4F4F; }
 
-	<body>
+	.bg {
+		/* The image used */
+		background-image: url("images/placeholder-big.jpg");
+
+		/* Full height */
+		height: 100%; 
+
+		/* Center and scale the image nicely */
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+	}
+	</style>
+</head>
+
+<body>
+	<div class="bg">
 		<h2>Sample JS practice</h2><br>
 		<h4>Calling my simple javascript method.</h1> 
-		<br>
-		<script>
-			let value = 'This is a string that I passed to JS function';
-			document.write(firstFunction(value));
-		</script>
-		<br>
-		I have completed printing the JS function value.
-		<br>
-		Adding an element to an array 
-		<br>
-		<script>
-			let myList = ['item1', 'item2'];
-			document.write('Value of myList = ' + myList);
-		</script>
-		<br>
-		<script>
-			myList = addElement(myList,'item3');
-			document.write('After calling method = ' + myList);
-		</script>
-		<br>
-		Remove last item <br>
-		<script>
-			myList = removeElement(myList);
-			document.write('After calling removeMethod = ' + myList);
-		</script>
+			<br>
+			<script>
+				let value = 'This is a string that I passed to JS function';
+				document.write(firstFunction(value));
+			</script>
+			<br>
+			I have completed printing the JS function value.
+			<br>
+			Adding an element to an array 
+			<br>
+			<script>
+				let myList = ['item1', 'item2'];
+				document.write('Value of myList = ' + myList);
+			</script>
+			<br>
+			<script>
+				myList = addElement(myList,'item3');
+				document.write('After calling method = ' + myList);
+			</script>
+			<br>
+			Remove last item <br>
+			<script>
+				myList = removeElement(myList);
+				document.write('After calling removeMethod = ' + myList);
+			</script>
 
-	</body>
+		<h4>anonymouse function js examples</h4>
+		const cities = ['Orlando', 'Dubai', 'Edinburgh', 'Chennai', 'Accra', 'Denver', 'Eskisehir', 'Medellin', 'Yokohama'];
+
+		//  Choose a method that will return undefined
+		cities.forEach(city => console.log('Have you visited ' + city + '?'));
+
+		<br>
+		<h4><a href="arrayfunctions.html">javascript array methods</a></h4>
+		<h4><a href="classes.html">javascript Classes</a></h4>
+		<h4><a href="images.html">HTML images</a></h4>
+	</div>
+</body>
+
 </html>
