@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Page Title</title>
+
+        <!-- Add the CSS page -->
+        <link href="./style.css" type="text/css" rel="stylesheet">
+
+	</head>
+	<body class="bg">
+		<ul>
+			<li><a href=#anchor>first div</a></li>
+			<li><a href=#images>second div</a></li>
+		</ul>
+		<div id="anchor">
+			<!-- Anchor examples -->
+			Anchor link examples <br>
+			<a href="https://www.wikipedia.org/">Open same window then navigate</a><br>
+			<a href="https://www.wikipedia.org/" target="_blank">Open new window then navigate to target</a><br>
+			<a href="./index.html">Navigate back</a><br>
+		</div>
+
+		<div id="images">
+			<table style="width:100%">
+			  <tr>
+			    <th>Image 1</th>
+			    <th>Image 2</th>
+			    <th>Image 3</th>
+			  </tr>
+			  <tr>
+			    <td>	Image to navigate to target<br>
+						<a href="https://en.wikipedia.org/wiki/Brown_bear" target="_blank">
+							<img src="https://s3.amazonaws.com/codecademy-content/courses/web-101/web101-image_brownbear.jpg" width="300" height="300" /></a>
+					</td>
+			    <td>Show an image<br>
+							<img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Toronto_-_ON_-_Toronto_Harbourfront7.jpg"
+							alt="handle cases when image doesnt load" width="300" height="300" />
+					</td>
+					<!-- Showing image of video -->
+			    <td>Sample video<br>
+						<video src="https://s3.amazonaws.com/codecademy-content/courses/freelance-1/unit-1/lesson-2/htmlcss1-vid_brown-bear.mp4"
+						width="300" height="300" controls>Didnt Load</video>
+					</td>
+			  </tr>
+			</table>
+		</div>
+
+		<div class="capitalize">
+			Section is capitalized using class css
+		</div>
+		<div class ="cursive">
+			Section is cursive using class css
+		</div>
+		<div id="ID-Test">
+			Section using id css
+		</div>
+
+	</body>
+</html>
