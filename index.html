@@ -1,56 +1,787 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="ar" dir="rtl">
 <head>
-	<script type="text/javascript" src="main.js"></script>
-
-	<!-- Add the CSS page -->
-	<link href="./style.css" type="text/css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zomoroda Modest | زمردة للأزياء المحتشمة</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            burgundy: '#58111A',
+            burgundyDark: '#3B0B11',
+            warmIvory: '#FDFBF7',
+            ivoryCard: '#F7F3EC',
+            goldAccent: '#C5A059'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FDFBF7; color: #2A2A2A; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
 </head>
-
 <body>
-	<div class="bg">
-		<h2>Sample JS practice</h2><br>
-		<h4>Calling my simple javascript method.</h1>
-			<br>
-			<script>
-				let value = 'This is a string that I passed to JS function';
-				document.write(firstFunction(value));
-			</script>
-			<br>
-			I have completed printing the JS function value.
-			<br>
-			Adding an element to an array
-			<br>
-			<script>
-				let myList = ['item1', 'item2'];
-				document.write('Value of myList = ' + myList);
-			</script>
-			<br>
-			<script>
-				myList = addElement(myList,'item3');
-				document.write('After calling method = ' + myList);
-			</script>
-			<br>
-			Remove last item <br>
-			<script>
-				myList = removeElement(myList);
-				document.write('After calling removeMethod = ' + myList);
-			</script>
+  <!-- Supabase Initialization -->
+  <script>
+    const SUPABASE_URL = "https://lzmggszqpszpldfcwazx.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_kc1MK-B9V-4lZlIS9bvOaA_GL3wXlJZ";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+  <!-- Header / Navigation -->
+  <header class="bg-burgundy text-warmIvory shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-wider cursor-pointer" onclick="showPage('store')">ZOMORODA <span class="text-xs block text-goldAccent font-normal">زمردة – أزياء محتشمة</span></h1>
+      <nav class="flex items-center space-x-6 space-x-reverse text-sm">
+        <button onclick="showPage('store')" class="hover:text-goldAccent transition">المتجر</button>
+        <button onclick="openAdminPage()" class="hover:text-goldAccent transition">لوحة التحكم</button>
+        <button onclick="toggleCart()" class="relative bg-goldAccent text-burgundy px-3 py-1.5 rounded-full font-semibold">
+          السلة (<span id="cart-count">0</span>)
+        </button>
+      </nav>
+    </div>
+  </header>
+  <!-- STORE PAGE -->
+  <main id="page-store" class="max-w-6xl mx-auto px-4 py-8">
+    <div class="bg-ivoryCard border border-goldAccent/30 rounded-2xl p-8 mb-10 text-center shadow-sm">
+      <h2 class="text-3xl font-bold text-burgundy mb-2">جودة | أناقة | حياء</h2>
+      <p class="text-gray-600 max-w-lg mx-auto">تشكيلة أزياء فريدة ومحتشمة تناسب ذوقكِ الرفيع مصممة بأعلى معايير الجودة.</p>
+    </div>
+    <h3 class="text-xl font-bold text-burgundy mb-6 border-r-4 border-burgundy pr-3">أحدث التصاميم</h3>
+    <div id="products-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <p class="text-gray-500">جاري تحميل المنتجات...</p>
+    </div>
+  </main>
+  <!-- CART & CHECKOUT PAGE -->
+  <main id="page-cart" class="max-w-3xl mx-auto px-4 py-8 hidden">
+    <h2 class="text-2xl font-bold text-burgundy mb-6">سلة الشراء وإتمام الطلب</h2>
+    
+    <div id="cart-items" class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100"></div>
+    <div class="bg-ivoryCard p-4 rounded-xl mb-6 border border-goldAccent/20">
+      <label class="block text-sm font-medium text-burgundy mb-2">هل لديكِ كود خصم (كود المندوبة)؟</label>
+      <div class="flex gap-2">
+        <input type="text" id="coupon-code" placeholder="أدخلي الكود هنا" class="flex-1 p-2 border rounded-lg text-sm">
+        <button onclick="applyCoupon()" class="bg-burgundy text-warmIvory px-4 py-2 rounded-lg text-sm">تطبيق</button>
+      </div>
+      <p id="coupon-message" class="text-xs mt-2"></p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100 space-y-2">
+      <div class="flex justify-between text-sm"><span>المجموع:</span><span id="summary-subtotal">0 د.أ</span></div>
+      <div class="flex justify-between text-sm text-green-600"><span>الخصم:</span><span id="summary-discount">0 د.أ</span></div>
+      <div class="flex justify-between text-sm"><span>التوصيل (داخل الأردن):</span><span>3 د.أ</span></div>
+      <div class="border-t pt-2 flex justify-between font-bold text-burgundy text-lg"><span>الإجمالي النهائي:</span><span id="summary-total">0 د.أ</span></div>
+    </div>
+    <form id="checkout-form" onsubmit="processOrder(event)" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+      <h3 class="font-bold text-burgundy">معلومات التوصيل (الدفع عند الاستلام)</h3>
+      <div>
+        <label class="block text-xs font-medium mb-1">الاسم الكامل *</label>
+        <input type="text" id="cust-name" required class="w-full p-2 border rounded-lg text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1">رقم الهاتف *</label>
+        <input type="tel" id="cust-phone" required placeholder="079XXXXXXXX" class="w-full p-2 border rounded-lg text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium mb-1">المحافظة / المدينة *</label>
+          <input type="text" id="cust-city" required placeholder="عمان، إربد..." class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1">العنوان التفصيلي *</label>
+          <input type="text" id="cust-address" required placeholder="اسم الشارع، البناية..." class="w-full p-2 border rounded-lg text-sm">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-burgundy text-warmIvory py-3 rounded-xl font-bold hover:bg-burgundyDark transition">تأكيد الطلب الآن</button>
+    </form>
+  </main>
+  <!-- ADMIN DASHBOARD -->
+  <main id="page-admin" class="max-w-6xl mx-auto px-4 py-8 hidden">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-burgundy">لوحة تحكم الإدارة</h2>
+      <div class="flex gap-2">
+        <button onclick="showAdminTab('orders')" class="px-4 py-2 bg-burgundy text-warmIvory rounded-lg text-sm">الطلبات والعمولات</button>
+        <button onclick="showAdminTab('products')" class="px-4 py-2 bg-ivoryCard text-burgundy border border-burgundy rounded-lg text-sm">إدارة المنتجات</button>
+        <button onclick="showAdminTab('affiliates')" class="px-4 py-2 bg-ivoryCard text-burgundy border border-burgundy rounded-lg text-sm">إدارة المندوبات</button>
+      </div>
+    </div>
+    
+    <!-- Admin Tab: Orders -->
+    <div id="tab-orders" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h3 class="font-bold text-burgundy mb-4">قائمة الطلبات والمبيعات</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right">
+          <thead class="bg-ivoryCard text-burgundy border-b">
+            <tr>
+              <th class="p-3">رقم الطلب</th>
+              <th class="p-3">الزبونة</th>
+              <th class="p-3">المبلغ النهائي</th>
+              <th class="p-3">المندوبة</th>
+              <th class="p-3">العمولة المستحقة</th>
+              <th class="p-3">الحالة</th>
+              <th class="p-3">الإجراء</th>
+            </tr>
+          </thead>
+          <tbody id="admin-orders-list"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Admin Tab: Add Product -->
+    <div id="tab-products" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hidden">
+      <h3 class="font-bold text-burgundy mb-4">إضافة منتج جديد</h3>
+      <form onsubmit="addProduct(event)" class="space-y-4 max-w-lg">
+        <input type="text" id="prod-name" placeholder="اسم المنتج (مثال: فستان زهر)" required class="w-full p-2 border rounded-lg text-sm">
+        <textarea id="prod-desc" placeholder="وصف المنتج والمقاسات" class="w-full p-2 border rounded-lg text-sm"></textarea>
+        <input type="number" step="0.01" id="prod-price" placeholder="السعر (د.أ)" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="number" id="prod-stock" placeholder="الكمية المتوفرة بالمخزون" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="url" id="prod-image" placeholder="رابط صورة المنتج (URL)" required class="w-full p-2 border rounded-lg text-sm">
+        <button type="submit" class="bg-burgundy text-warmIvory px-6 py-2 rounded-lg text-sm font-bold">حفظ المنتج</button>
+      </form>
+    </div>
+    <!-- Admin Tab: Affiliates -->
+    <div id="tab-affiliates" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hidden">
+      <h3 class="font-bold text-burgundy mb-4">إضافة مندوبة جديدة</h3>
+      <form onsubmit="addAffiliate(event)" class="space-y-4 max-w-lg mb-8">
+        <input type="text" id="aff-name" placeholder="اسم المندوبة" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="text" id="aff-code" placeholder="كود الخصم (مثال: NOUR10)" required class="w-full p-2 border rounded-lg text-sm uppercase">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-gray-500">نسبة خصم الزبونة (%)</label>
+            <input type="number" id="aff-discount" value="10" required class="w-full p-2 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">نسبة عمولة المندوبة (%)</label>
+            <input type="number" id="aff-commission" value="10" required class="w-full p-2 border rounded-lg text-sm">
+          </div>
+        </div>
+        <button type="submit" class="bg-burgundy text-warmIvory px-6 py-2 rounded-lg text-sm font-bold">إضافة المندوبة</button>
+      </form>
+    </div>
+  </main>
+  <script>
+    let cart = [];
+    let appliedAffiliate = null;
+    let isAdminAuthenticated = false;
 
-		<h4>anonymouse function js examples</h4>
-		const cities = ['Orlando', 'Dubai', 'Edinburgh', 'Chennai', 'Accra', 'Denver', 'Eskisehir', 'Medellin', 'Yokohama'];
+    function openAdminPage() {
+      if (!isAdminAuthenticated) {
+        const password = prompt("يرجى إدخال كلمة سر الإدارة:");
+        if (password === "admin123") {
+          isAdminAuthenticated = true;
+          showPage('admin');
+        } else {
+          alert("كلمة السر غير صحيحة!");
+        }
+      } else {
+        showPage('admin');
+      }
+    }
 
-		//  Choose a method that will return undefined
-		cities.forEach(city => console.log('Have you visited ' + city + '?'));
+    function showPage(pageId) {
+      document.getElementById('page-store').classList.add('hidden');
+      document.getElementById('page-cart').classList.add('hidden');
+      document.getElementById('page-admin').classList.add('hidden');
+      document.getElementById(`page-${pageId}`).classList.remove('hidden');
+      if(pageId === 'store') loadProducts();
+      if(pageId === 'admin') loadAdminOrders();
+    }
 
-		<br>
-		<h4><a href="arrayfunctions.html">javascript array methods</a></h4>
-		<h4><a href="classes.html">javascript Classes</a></h4>
-		<h4><a href="images.html">HTML images</a></h4>
-		<h4><a href="sample.html">Sample HTML template</a></h4>
-		<h4><a href="githubsample.html">Revised github io link</a></h4>
+    function showAdminTab(tabId) {
+      document.getElementById('tab-orders').classList.add('hidden');
+      document.getElementById('tab-products').classList.add('hidden');
+      document.getElementById('tab-affiliates').classList.add('hidden');
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    }
 
-	</div>
+    async function loadProducts() {
+      const { data: products, error } = await _supabase.from('products').select('*');
+      const container = document.getElementById('products-list');
+      
+      if (error || !products || !products.length) {
+        container.innerHTML = `<p class="text-gray-500 col-span-3 text-center">لا توجد منتجات حالياً. أضيفي منتجات من لوحة التحكم.</p>`;
+        return;
+      }
+      container.innerHTML = products.map(p => `
+        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col justify-between">
+          <img src="${p.image_url}" alt="${p.name}" class="w-full h-64 object-cover">
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 class="font-bold text-burgundy text-lg mb-1">${p.name}</h4>
+              <p class="text-xs text-gray-500 mb-3">${p.description || ''}</p>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-bold text-burgundy">${p.price} د.أ</span>
+              <button onclick="addToCart(${p.id}, '${p.name}', ${p.price})" class="bg-burgundy text-warmIvory px-4 py-2 rounded-xl text-xs font-medium hover:bg-burgundyDark transition">إضافة للسلة</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addToCart(id, name, price) {
+      const item = cart.find(i => i.id === id);
+      if (item) item.qty++;
+      else cart.push({ id, name, price, qty: 1 });
+      updateCartUI();
+      alert('تمت إضافة المنتج للسلة!');
+    }
+
+    function toggleCart() {
+      showPage('cart');
+      renderCart();
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((sum, item) => sum + item.qty, 0);
+      document.getElementById('cart-count').innerText = count;
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      if (!cart.length) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-4">السلة فارغة</p>`;
+        calculateSummary();
+        return;
+      }
+      container.innerHTML = cart.map(item => `
+        <div class="flex justify-between items-center py-2 border-b last:border-0">
+          <div>
+            <h5 class="font-bold text-sm text-burgundy">${item.name}</h5>
+            <span class="text-xs text-gray-500">${item.price} د.أ × ${item.qty}</span>
+          </div>
+          <span class="font-bold text-sm">${(item.price * item.qty).toFixed(2)} د.أ</span>
+        </div>
+      `).join('');
+      calculateSummary();
+    }
+
+    async function applyCoupon() {
+      const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+      const msg = document.getElementById('coupon-message');
+      if (!code) return;
+      const { data, error } = await _supabase.from('affiliates').select('*').eq('code', code).single();
+      if (error || !data) {
+        msg.innerText = "كود الخصم غير صحيح";
+        msg.className = "text-xs mt-2 text-red-500";
+        appliedAffiliate = null;
+      } else {
+        appliedAffiliate = data;
+        msg.innerText = `تم تطبيق خصم ${data.discount_percent}% بنجاح! (كود المندوبة: ${data.name})`;
+        msg.className = "text-xs mt-2 text-green-600 font-semibold";
+      }
+      calculateSummary();
+    }
+
+    function calculateSummary() {
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      let discount = 0;
+      if (appliedAffiliate && subtotal > 0) {
+        discount = (subtotal * (appliedAffiliate.discount_percent / 100));
+      }
+      const shipping = cart.length > 0 ? 3 : 0;
+      const total = subtotal - discount + shipping;
+      document.getElementById('summary-subtotal').innerText = `${subtotal.toFixed(2)} د.أ`;
+      document.getElementById('summary-discount').innerText = `-${discount.toFixed(2)} د.أ`;
+      document.getElementById('summary-total').innerText = `${total.toFixed(2)} د.أ`;
+    }
+
+    async function processOrder(e) {
+      e.preventDefault();
+      if (!cart.length) return alert('السلة فارغة!');
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const discount = appliedAffiliate ? (subtotal * (appliedAffiliate.discount_percent / 100)) : 0;
+      const finalTotal = subtotal - discount + 3;
+      const commission = appliedAffiliate ? ((subtotal - discount) * (appliedAffiliate.commission_percent / 100)) : 0;
+      
+      const orderData = {
+        customer_name: document.getElementById('cust-name').value,
+        phone: document.getElementById('cust-phone').value,
+        city: document.getElementById('cust-city').value,
+        address: document.getElementById('cust-address').value,
+        total_amount: subtotal,
+        discount_amount: discount,
+        final_amount: finalTotal,
+        affiliate_id: appliedAffiliate ? appliedAffiliate.id : null,
+        affiliate_commission: commission,
+        status: 'pending'
+      };
+      const { data, error } = await _supabase.from('orders').insert([orderData]).select();
+      if (error) {
+        alert('حدث خطأ أثناء إرسال الطلب، يرجى المحاولة لاحقاً');
+      } else {
+        alert('تم إرسال طلبكِ بنجاح! سنتواصل معكِ عبر الهاتف لتأكيد التوصيل.');
+        cart = [];
+        appliedAffiliate = null;
+        updateCartUI();
+        showPage('store');
+      }
+    }
+
+    async function loadAdminOrders() {
+      const { data: orders, error } = await _supabase
+        .from('orders')
+        .select('*, affiliates(name, code)')
+        .order('created_at', { ascending: false });
+      const container = document.getElementById('admin-orders-list');
+      if (error || !orders || !orders.length) {
+        container.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد طلبات بعد.</td></tr>`;
+        return;
+      }
+      container.innerHTML = orders.map(o => `
+        <tr class="border-b">
+          <td class="p-3">#${o.id}</td>
+          <td class="p-3">${o.customer_name}<br><span class="text-xs text-gray-500">${o.phone} - ${o.city}</span></td>
+          <td class="p-3 font-bold">${o.final_amount} د.أ</td>
+          <td class="p-3">${o.affiliates ? o.affiliates.name : '-'}</td>
+          <td class="p-3 text-green-700 font-bold">${o.status === 'cancelled' || o.status === 'refunded' ? '0 د.أ (ملغى)' : o.affiliate_commission + ' د.أ'}</td>
+          <td class="p-3">
+            <span class="px-2 py-1 rounded-full text-xs ${o.status === 'completed' ? 'bg-green-100 text-green-800' : o.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
+              ${o.status}
+            </span>
+          </td>
+          <td class="p-3">
+            <select onchange="updateOrderStatus(${o.id}, this.value)" class="text-xs p-1 border rounded">
+              <option value="pending" ${o.status==='pending'?'selected':''}>قيد الانتظار</option>
+              <option value="completed" ${o.status==='completed'?'selected':''}>مكتمل (تم التوصيل)</option>
+              <option value="cancelled" ${o.status==='cancelled'?'selected':''}>ملغى (بدون عمولة)</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      await _supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      loadAdminOrders();
+    }
+
+    async function addProduct(e) {
+      e.preventDefault();
+      const product = {
+        name: document.getElementById('prod-name').value,
+        description: document.getElementById('prod-desc').value,
+        price: parseFloat(document.getElementById('prod-price').value),
+        stock: parseInt(document.getElementById('prod-stock').value),
+        image_url: document.getElementById('prod-image').value
+      };
+      await _supabase.from('products').insert([product]);
+      alert('تم إضافة المنتج بنجاح!');
+      showAdminTab('orders');
+    }
+
+    async function addAffiliate(e) {
+      e.preventDefault();
+      const affiliate = {
+        name: document.getElementById('aff-name').value,
+        code: document.getElementById('aff-code').value.toUpperCase(),
+        discount_percent: parseFloat(document.getElementById('aff-discount').value),
+        commission_percent: parseFloat(document.getElementById('aff-commission').value)
+      };
+      await _supabase.from('affiliates').insert([affiliate]);
+      alert('تم إضافة المندوبة والكود بنجاح!');
+      showAdminTab('orders');
+    }
+
+    loadProducts();
+  </script>
 </body>
-
 </html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zomoroda Modest | زمردة للأزياء المحتشمة</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            burgundy: '#58111A',
+            burgundyDark: '#3B0B11',
+            warmIvory: '#FDFBF7',
+            ivoryCard: '#F7F3EC',
+            goldAccent: '#C5A059'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #FDFBF7; color: #2A2A2A; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <!-- Supabase Initialization -->
+  <script>
+    const SUPABASE_URL = "https://lzmggszqpszpldfcwazx.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_kc1MK-B9V-4lZlIS9bvOaA_GL3wXlJZ";
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+  <!-- Header / Navigation -->
+  <header class="bg-burgundy text-warmIvory shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-wider cursor-pointer" onclick="showPage('store')">ZOMORODA <span class="text-xs block text-goldAccent font-normal">زمردة – أزياء محتشمة</span></h1>
+      <nav class="flex items-center space-x-6 space-x-reverse text-sm">
+        <button onclick="showPage('store')" class="hover:text-goldAccent transition">المتجر</button>
+        <button onclick="openAdminPage()" class="hover:text-goldAccent transition">لوحة التحكم</button>
+        <button onclick="toggleCart()" class="relative bg-goldAccent text-burgundy px-3 py-1.5 rounded-full font-semibold">
+          السلة (<span id="cart-count">0</span>)
+        </button>
+      </nav>
+    </div>
+  </header>
+  <!-- STORE PAGE -->
+  <main id="page-store" class="max-w-6xl mx-auto px-4 py-8">
+    <div class="bg-ivoryCard border border-goldAccent/30 rounded-2xl p-8 mb-10 text-center shadow-sm">
+      <h2 class="text-3xl font-bold text-burgundy mb-2">جودة | أناقة | حياء</h2>
+      <p class="text-gray-600 max-w-lg mx-auto">تشكيلة أزياء فريدة ومحتشمة تناسب ذوقكِ الرفيع مصممة بأعلى معايير الجودة.</p>
+    </div>
+    <h3 class="text-xl font-bold text-burgundy mb-6 border-r-4 border-burgundy pr-3">أحدث التصاميم</h3>
+    <div id="products-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <p class="text-gray-500">جاري تحميل المنتجات...</p>
+    </div>
+  </main>
+  <!-- CART & CHECKOUT PAGE -->
+  <main id="page-cart" class="max-w-3xl mx-auto px-4 py-8 hidden">
+    <h2 class="text-2xl font-bold text-burgundy mb-6">سلة الشراء وإتمام الطلب</h2>
+    
+    <div id="cart-items" class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100"></div>
+    <div class="bg-ivoryCard p-4 rounded-xl mb-6 border border-goldAccent/20">
+      <label class="block text-sm font-medium text-burgundy mb-2">هل لديكِ كود خصم (كود المندوبة)؟</label>
+      <div class="flex gap-2">
+        <input type="text" id="coupon-code" placeholder="أدخلي الكود هنا" class="flex-1 p-2 border rounded-lg text-sm">
+        <button onclick="applyCoupon()" class="bg-burgundy text-warmIvory px-4 py-2 rounded-lg text-sm">تطبيق</button>
+      </div>
+      <p id="coupon-message" class="text-xs mt-2"></p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 border border-gray-100 space-y-2">
+      <div class="flex justify-between text-sm"><span>المجموع:</span><span id="summary-subtotal">0 د.أ</span></div>
+      <div class="flex justify-between text-sm text-green-600"><span>الخصم:</span><span id="summary-discount">0 د.أ</span></div>
+      <div class="flex justify-between text-sm"><span>التوصيل (داخل الأردن):</span><span>3 د.أ</span></div>
+      <div class="border-t pt-2 flex justify-between font-bold text-burgundy text-lg"><span>الإجمالي النهائي:</span><span id="summary-total">0 د.أ</span></div>
+    </div>
+    <form id="checkout-form" onsubmit="processOrder(event)" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+      <h3 class="font-bold text-burgundy">معلومات التوصيل (الدفع عند الاستلام)</h3>
+      <div>
+        <label class="block text-xs font-medium mb-1">الاسم الكامل *</label>
+        <input type="text" id="cust-name" required class="w-full p-2 border rounded-lg text-sm">
+      </div>
+      <div>
+        <label class="block text-xs font-medium mb-1">رقم الهاتف *</label>
+        <input type="tel" id="cust-phone" required placeholder="079XXXXXXXX" class="w-full p-2 border rounded-lg text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium mb-1">المحافظة / المدينة *</label>
+          <input type="text" id="cust-city" required placeholder="عمان، إربد..." class="w-full p-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1">العنوان التفصيلي *</label>
+          <input type="text" id="cust-address" required placeholder="اسم الشارع، البناية..." class="w-full p-2 border rounded-lg text-sm">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-burgundy text-warmIvory py-3 rounded-xl font-bold hover:bg-burgundyDark transition">تأكيد الطلب الآن</button>
+    </form>
+  </main>
+  <!-- ADMIN DASHBOARD -->
+  <main id="page-admin" class="max-w-6xl mx-auto px-4 py-8 hidden">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-burgundy">لوحة تحكم الإدارة</h2>
+      <div class="flex gap-2">
+        <button onclick="showAdminTab('orders')" class="px-4 py-2 bg-burgundy text-warmIvory rounded-lg text-sm">الطلبات والعمولات</button>
+        <button onclick="showAdminTab('products')" class="px-4 py-2 bg-ivoryCard text-burgundy border border-burgundy rounded-lg text-sm">إدارة المنتجات</button>
+        <button onclick="showAdminTab('affiliates')" class="px-4 py-2 bg-ivoryCard text-burgundy border border-burgundy rounded-lg text-sm">إدارة المندوبات</button>
+      </div>
+    </div>
+    
+    <!-- Admin Tab: Orders -->
+    <div id="tab-orders" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <h3 class="font-bold text-burgundy mb-4">قائمة الطلبات والمبيعات</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right">
+          <thead class="bg-ivoryCard text-burgundy border-b">
+            <tr>
+              <th class="p-3">رقم الطلب</th>
+              <th class="p-3">الزبونة</th>
+              <th class="p-3">المبلغ النهائي</th>
+              <th class="p-3">المندوبة</th>
+              <th class="p-3">العمولة المستحقة</th>
+              <th class="p-3">الحالة</th>
+              <th class="p-3">الإجراء</th>
+            </tr>
+          </thead>
+          <tbody id="admin-orders-list"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Admin Tab: Add Product -->
+    <div id="tab-products" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hidden">
+      <h3 class="font-bold text-burgundy mb-4">إضافة منتج جديد</h3>
+      <form onsubmit="addProduct(event)" class="space-y-4 max-w-lg">
+        <input type="text" id="prod-name" placeholder="اسم المنتج (مثال: فستان زهر)" required class="w-full p-2 border rounded-lg text-sm">
+        <textarea id="prod-desc" placeholder="وصف المنتج والمقاسات" class="w-full p-2 border rounded-lg text-sm"></textarea>
+        <input type="number" step="0.01" id="prod-price" placeholder="السعر (د.أ)" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="number" id="prod-stock" placeholder="الكمية المتوفرة بالمخزون" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="url" id="prod-image" placeholder="رابط صورة المنتج (URL)" required class="w-full p-2 border rounded-lg text-sm">
+        <button type="submit" class="bg-burgundy text-warmIvory px-6 py-2 rounded-lg text-sm font-bold">حفظ المنتج</button>
+      </form>
+    </div>
+    <!-- Admin Tab: Affiliates -->
+    <div id="tab-affiliates" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hidden">
+      <h3 class="font-bold text-burgundy mb-4">إضافة مندوبة جديدة</h3>
+      <form onsubmit="addAffiliate(event)" class="space-y-4 max-w-lg mb-8">
+        <input type="text" id="aff-name" placeholder="اسم المندوبة" required class="w-full p-2 border rounded-lg text-sm">
+        <input type="text" id="aff-code" placeholder="كود الخصم (مثال: NOUR10)" required class="w-full p-2 border rounded-lg text-sm uppercase">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-gray-500">نسبة خصم الزبونة (%)</label>
+            <input type="number" id="aff-discount" value="10" required class="w-full p-2 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">نسبة عمولة المندوبة (%)</label>
+            <input type="number" id="aff-commission" value="10" required class="w-full p-2 border rounded-lg text-sm">
+          </div>
+        </div>
+        <button type="submit" class="bg-burgundy text-warmIvory px-6 py-2 rounded-lg text-sm font-bold">إضافة المندوبة</button>
+      </form>
+    </div>
+  </main>
+  <script>
+    let cart = [];
+    let appliedAffiliate = null;
+    let isAdminAuthenticated = false;
+
+    function openAdminPage() {
+      if (!isAdminAuthenticated) {
+        const password = prompt("يرجى إدخال كلمة سر الإدارة:");
+        if (password === "admin123") {
+          isAdminAuthenticated = true;
+          showPage('admin');
+        } else {
+          alert("كلمة السر غير صحيحة!");
+        }
+      } else {
+        showPage('admin');
+      }
+    }
+
+    function showPage(pageId) {
+      document.getElementById('page-store').classList.add('hidden');
+      document.getElementById('page-cart').classList.add('hidden');
+      document.getElementById('page-admin').classList.add('hidden');
+      document.getElementById(`page-${pageId}`).classList.remove('hidden');
+      if(pageId === 'store') loadProducts();
+      if(pageId === 'admin') loadAdminOrders();
+    }
+
+    function showAdminTab(tabId) {
+      document.getElementById('tab-orders').classList.add('hidden');
+      document.getElementById('tab-products').classList.add('hidden');
+      document.getElementById('tab-affiliates').classList.add('hidden');
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    }
+
+    async function loadProducts() {
+      const { data: products, error } = await _supabase.from('products').select('*');
+      const container = document.getElementById('products-list');
+      
+      if (error || !products || !products.length) {
+        container.innerHTML = `<p class="text-gray-500 col-span-3 text-center">لا توجد منتجات حالياً. أضيفي منتجات من لوحة التحكم.</p>`;
+        return;
+      }
+      container.innerHTML = products.map(p => `
+        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col justify-between">
+          <img src="${p.image_url}" alt="${p.name}" class="w-full h-64 object-cover">
+          <div class="p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <h4 class="font-bold text-burgundy text-lg mb-1">${p.name}</h4>
+              <p class="text-xs text-gray-500 mb-3">${p.description || ''}</p>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-bold text-burgundy">${p.price} د.أ</span>
+              <button onclick="addToCart(${p.id}, '${p.name}', ${p.price})" class="bg-burgundy text-warmIvory px-4 py-2 rounded-xl text-xs font-medium hover:bg-burgundyDark transition">إضافة للسلة</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addToCart(id, name, price) {
+      const item = cart.find(i => i.id === id);
+      if (item) item.qty++;
+      else cart.push({ id, name, price, qty: 1 });
+      updateCartUI();
+      alert('تمت إضافة المنتج للسلة!');
+    }
+
+    function toggleCart() {
+      showPage('cart');
+      renderCart();
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((sum, item) => sum + item.qty, 0);
+      document.getElementById('cart-count').innerText = count;
+    }
+
+    function renderCart() {
+      const container = document.getElementById('cart-items');
+      if (!cart.length) {
+        container.innerHTML = `<p class="text-center text-gray-400 py-4">السلة فارغة</p>`;
+        calculateSummary();
+        return;
+      }
+      container.innerHTML = cart.map(item => `
+        <div class="flex justify-between items-center py-2 border-b last:border-0">
+          <div>
+            <h5 class="font-bold text-sm text-burgundy">${item.name}</h5>
+            <span class="text-xs text-gray-500">${item.price} د.أ × ${item.qty}</span>
+          </div>
+          <span class="font-bold text-sm">${(item.price * item.qty).toFixed(2)} د.أ</span>
+        </div>
+      `).join('');
+      calculateSummary();
+    }
+
+    async function applyCoupon() {
+      const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+      const msg = document.getElementById('coupon-message');
+      if (!code) return;
+      const { data, error } = await _supabase.from('affiliates').select('*').eq('code', code).single();
+      if (error || !data) {
+        msg.innerText = "كود الخصم غير صحيح";
+        msg.className = "text-xs mt-2 text-red-500";
+        appliedAffiliate = null;
+      } else {
+        appliedAffiliate = data;
+        msg.innerText = `تم تطبيق خصم ${data.discount_percent}% بنجاح! (كود المندوبة: ${data.name})`;
+        msg.className = "text-xs mt-2 text-green-600 font-semibold";
+      }
+      calculateSummary();
+    }
+
+    function calculateSummary() {
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      let discount = 0;
+      if (appliedAffiliate && subtotal > 0) {
+        discount = (subtotal * (appliedAffiliate.discount_percent / 100));
+      }
+      const shipping = cart.length > 0 ? 3 : 0;
+      const total = subtotal - discount + shipping;
+      document.getElementById('summary-subtotal').innerText = `${subtotal.toFixed(2)} د.أ`;
+      document.getElementById('summary-discount').innerText = `-${discount.toFixed(2)} د.أ`;
+      document.getElementById('summary-total').innerText = `${total.toFixed(2)} د.أ`;
+    }
+
+    async function processOrder(e) {
+      e.preventDefault();
+      if (!cart.length) return alert('السلة فارغة!');
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const discount = appliedAffiliate ? (subtotal * (appliedAffiliate.discount_percent / 100)) : 0;
+      const finalTotal = subtotal - discount + 3;
+      const commission = appliedAffiliate ? ((subtotal - discount) * (appliedAffiliate.commission_percent / 100)) : 0;
+      
+      const orderData = {
+        customer_name: document.getElementById('cust-name').value,
+        phone: document.getElementById('cust-phone').value,
+        city: document.getElementById('cust-city').value,
+        address: document.getElementById('cust-address').value,
+        total_amount: subtotal,
+        discount_amount: discount,
+        final_amount: finalTotal,
+        affiliate_id: appliedAffiliate ? appliedAffiliate.id : null,
+        affiliate_commission: commission,
+        status: 'pending'
+      };
+      const { data, error } = await _supabase.from('orders').insert([orderData]).select();
+      if (error) {
+        alert('حدث خطأ أثناء إرسال الطلب، يرجى المحاولة لاحقاً');
+      } else {
+        alert('تم إرسال طلبكِ بنجاح! سنتواصل معكِ عبر الهاتف لتأكيد التوصيل.');
+        cart = [];
+        appliedAffiliate = null;
+        updateCartUI();
+        showPage('store');
+      }
+    }
+
+    async function loadAdminOrders() {
+      const { data: orders, error } = await _supabase
+        .from('orders')
+        .select('*, affiliates(name, code)')
+        .order('created_at', { ascending: false });
+      const container = document.getElementById('admin-orders-list');
+      if (error || !orders || !orders.length) {
+        container.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد طلبات بعد.</td></tr>`;
+        return;
+      }
+      container.innerHTML = orders.map(o => `
+        <tr class="border-b">
+          <td class="p-3">#${o.id}</td>
+          <td class="p-3">${o.customer_name}<br><span class="text-xs text-gray-500">${o.phone} - ${o.city}</span></td>
+          <td class="p-3 font-bold">${o.final_amount} د.أ</td>
+          <td class="p-3">${o.affiliates ? o.affiliates.name : '-'}</td>
+          <td class="p-3 text-green-700 font-bold">${o.status === 'cancelled' || o.status === 'refunded' ? '0 د.أ (ملغى)' : o.affiliate_commission + ' د.أ'}</td>
+          <td class="p-3">
+            <span class="px-2 py-1 rounded-full text-xs ${o.status === 'completed' ? 'bg-green-100 text-green-800' : o.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
+              ${o.status}
+            </span>
+          </td>
+          <td class="p-3">
+            <select onchange="updateOrderStatus(${o.id}, this.value)" class="text-xs p-1 border rounded">
+              <option value="pending" ${o.status==='pending'?'selected':''}>قيد الانتظار</option>
+              <option value="completed" ${o.status==='completed'?'selected':''}>مكتمل (تم التوصيل)</option>
+              <option value="cancelled" ${o.status==='cancelled'?'selected':''}>ملغى (بدون عمولة)</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      await _supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      loadAdminOrders();
+    }
+
+    async function addProduct(e) {
+      e.preventDefault();
+      const product = {
+        name: document.getElementById('prod-name').value,
+        description: document.getElementById('prod-desc').value,
+        price: parseFloat(document.getElementById('prod-price').value),
+        stock: parseInt(document.getElementById('prod-stock').value),
+        image_url: document.getElementById('prod-image').value
+      };
+      await _supabase.from('products').insert([product]);
+      alert('تم إضافة المنتج بنجاح!');
+      showAdminTab('orders');
+    }
+
+    async function addAffiliate(e) {
+      e.preventDefault();
+      const affiliate = {
+        name: document.getElementById('aff-name').value,
+        code: document.getElementById('aff-code').value.toUpperCase(),
+        discount_percent: parseFloat(document.getElementById('aff-discount').value),
+        commission_percent: parseFloat(document.getElementById('aff-commission').value)
+      };
+      await _supabase.from('affiliates').insert([affiliate]);
+      alert('تم إضافة المندوبة والكود بنجاح!');
+      showAdminTab('orders');
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
+
